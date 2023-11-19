@@ -1,8 +1,10 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb'
 import AWSXRay from 'aws-xray-sdk-core'
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import { createLogger } from '../../utils/logger.mjs'
+import { createLogger } from '../utils/logger.mjs'
+import { getAttachmentUrl } from '../fileStorage/attachmentUtils.mjs'
 
 const logger = createLogger('TodoAccess')
 
@@ -13,7 +15,7 @@ export class TodosAccess {
     todosIndex = process.env.TODOS_CREATED_AT_INDEX,
     bucketName = process.env.ATTACHMENTS_S3_BUCKET,
     s3Client = new S3Client(),
-    urlExpiration = parseInt(process.env.SIGNED_URL_EXPIRATION)
+    urlExpiration = process.env.SIGNED_URL_EXPIRATION
   ) {
     this.documentClient = documentClient
     this.todosTable = todosTable
@@ -53,7 +55,7 @@ export class TodosAccess {
   async updateTodo(userId, todoId, updatedTodo) {
     logger.info(`Update todo item ${todoId}`)
 
-    await this.dynamoDb.update({
+    await this.dynamoDbClient.update({
       TableName: this.todosTable,
       Key: {
         userId,
@@ -94,18 +96,20 @@ export class TodosAccess {
     })
 
     const url = await getSignedUrl(this.s3Client, command, {
-      expiresIn: parseInt(urlExpiration)
+      expiresIn: parseInt(this.urlExpiration)
     })
 
-    await this.dynamoDb.update({
+    logger.info(`Upload URL ${url}`)
+
+    await this.dynamoDbClient.update({
       TableName: this.todosTable,
       Key: {
         userId,
         todoId
       },
-      UpdateExpression: 'set attachmentUrl = :URL',
+      UpdateExpression: 'set attachmentUrl = :attachmentUrl',
       ExpressionAttributeValues: {
-        ':URL': url.split('?')[0]
+        ':attachmentUrl': getAttachmentUrl(todoId)
       }
     })
 
