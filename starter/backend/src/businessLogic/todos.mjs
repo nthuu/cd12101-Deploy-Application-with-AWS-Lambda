@@ -26,7 +26,7 @@ export async function createTodo(request, userId) {
 }
 
 export async function deleteTodo(userId, todoId) {
-    return await todosAccess.deteteTodo(userId, todoId);
+    return await todosAccess.deleteTodo(userId, todoId);
 }
 
 export async function generateUploadUrl(userId, todoId) {
