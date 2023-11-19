@@ -1,5 +1,3 @@
-org: huunt
-app: serverless-todo-app
 service: serverless-todo-app
 
 plugins:
