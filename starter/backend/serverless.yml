@@ -1,3 +1,5 @@
+org: huunt
+app: serverless-todo-app
 service: serverless-todo-app
 
 plugins:
@@ -62,7 +64,7 @@ functions:
           cors: true
           request:
             schemas:
-              application/json: ${file(models/create-todo-request.json)}
+              application/json: ${file(models/create-todo-model.json)}
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -84,7 +86,7 @@ functions:
           cors: true
           request:
             schemas:
-              application/json: ${file(models/update-todo-request.json)}
+              application/json: ${file(models/update-todo-model.json)}
     iamRoleStatements:
       - Effect: Allow
         Action:
